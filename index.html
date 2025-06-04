@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>100-Day Workout Plan - Full</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    
+    <link rel="manifest" href="manifest.json">
+
+    <meta name="theme-color" content="#2a9d8f">
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Workout Plan">
+    <style>
+        body {
+            font-family: 'Lato', sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f7f6;
+            color: #333;
+        }
+        .container { max-width: 800px; margin: auto; background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 15px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #2a9d8f; margin-bottom: 10px; }
+        #workoutCanvas { display: block; margin: 0 auto 15px auto; }
+
+        /* Progress Bar Styles */
+        .progress-container {
+            width: 100%;
+            background-color: #e0e0e0;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            padding: 4px;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+            box-sizing: border-box;
+        }
+        .progress-bar {
+            width: 0%; /* Initial width */
+            height: 28px;
+            background-color: #2a9d8f; 
+            border-radius: 5px;
+            text-align: center;
+            line-height: 28px;
+            color: white;
+            font-weight: bold;
+            font-size: 0.9em;
+            transition: width 0.5s ease-in-out;
+            position: relative;
+            overflow: hidden; 
+        }
+        .progress-text {
+            position: absolute;
+            width: 100%;
+            left: 0;
+            top: 0; 
+        }
+
+        /* Day Entry Styling */
+        #pending-workouts .day-entry,
+        #completed-workouts .day-entry { background-color: #e9f5f3; margin-bottom: 10px; border-radius: 5px; border-left: 5px solid #2a9d8f; overflow: hidden; }
+        #completed-workouts .day-entry { border-left-color: #5cb85c; background-color: #f0fff0; }
+        #completed-workouts .day-entry .day-label { color: #3c763d; }
+        
+        .day-toggle-checkbox { display: none; }
+        .day-label { display: block; padding: 15px; cursor: pointer; font-weight: bold; color: #264653; position: relative; transition: background-color 0.3s ease; }
+        .day-label:hover { background-color: #d8eaea; }
+        #completed-workouts .day-entry .day-label:hover { background-color: #e6ffe6; }
+        .day-label::after { content: '▼'; font-size: 0.8em; position: absolute; right: 20px; top: 50%; transform: translateY(-50%); transition: transform 0.3s ease; }
+        .day-toggle-checkbox:checked + .day-label::after { transform: translateY(-50%) rotate(180deg); }
+        
+        .workout-details { padding: 0 20px; background-color: #fff; max-height: 0; overflow: hidden; transition: max-height 0.5s ease-out, padding 0.5s ease-out; }
+        .day-toggle-checkbox:checked ~ .workout-details { max-height: 1300px; padding: 15px 20px; border-top: 1px solid #eee; }
+        #completed-workouts .day-entry .workout-details { background-color: #fafffa; border-top-color: #e0f0e0; }
+        
+        .workout-details h4 { color: #e76f51; margin-top: 0; margin-bottom: 10px; }
+        #completed-workouts .day-entry .workout-details h4 { color: #4a934a; }
+        .workout-details ul { list-style-type: disc; margin-left: 20px; padding-left: 0; margin-bottom: 10px; }
+        .workout-details ul li { margin-bottom: 5px; }
+        .workout-details p { margin-top: 0; margin-bottom: 10px; }
+        .workout-details strong { color: #2a9d8f; }
+        #completed-workouts .day-entry .workout-details strong { color: #508c50; }
+        .workout-details .post-workout-cardio strong { color: #e9c46a; }
+        #completed-workouts .day-entry .post-workout-cardio strong { color: #d4ac0d; }
+        .workout-details .evening-activity { color: #f4a261; }
+        #completed-workouts .day-entry .evening-activity { color: #d6893e; }
+
+        /* Rest Day Specific Styling */
+        .rest-day, #completed-workouts .rest-day { border-left: 5px solid #e63946 !important; background-color: #ffeeee !important; }
+        .rest-day .day-label, #completed-workouts .rest-day .day-label { color: #e63946 !important; }
+        .rest-day .workout-details strong, #completed-workouts .rest-day .workout-details strong { color: #e63946 !important; }
+        .rest-day .day-label::after, #completed-workouts .rest-day .day-label::after { color: #e63946 !important; }
+        
+        /* Action Button Area */
+        .day-actions { padding: 10px 20px; text-align: right; background-color: #f8f9fa; border-top: 1px solid #eee; }
+        #completed-workouts .day-entry .day-actions { background-color: #f0fff0; border-top-color: #e0f0e0; }
+        .action-btn { padding: 8px 15px; font-family: 'Lato', sans-serif; font-weight: bold; cursor: pointer; border: none; border-radius: 4px; background-color: #2a9d8f; color: white; transition: background-color 0.3s ease; }
+        .action-btn:hover { background-color: #227a70; }
+        #completed-workouts .action-btn { background-color: #f4a261; }
+        #completed-workouts .action-btn:hover { background-color: #e08a45; }
+        
+        /* Completed Workouts Section */
+        #completed-workouts-container { margin-top: 30px; padding-top: 20px; border-top: 2px solid #2a9d8f; }
+        #completed-title { text-align: center; color: #264653; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>My 100-Day Workout & Boxing Plan</h1>
+        <canvas id="workoutCanvas" width="250" height="50"></canvas>
+
+        <div class="progress-container">
+            <div class="progress-bar" id="myProgressBar">
+                <span class="progress-text" id="myProgressText">0% Complete</span>
+            </div>
+        </div>
+
+        <div id="calendar-sections">
+            <div id="pending-workouts">
+                </div>
+
+            <div id="completed-workouts-container">
+                <h3 id="completed-title" style="display: none;">Completed Workouts</h3>
+                <div id="completed-workouts">
+                    </div>
+            </div>
+        </div>
+
+        <template id="ppl-push1"></template>
+        <template id="ppl-pull1"></template>
+        <template id="ppl-legs1"></template>
+        <template id="ppl-push2"></template>
+        <template id="ppl-pull2"></template>
+        <template id="ppl-legs2"></template>
+    </div>
+
+    <script>
+        // --- PPL TEMPLATE CONTENT ASSIGNMENT ---
+        document.getElementById('ppl-push1').innerHTML = `<h4>Push Day 1 (Chest, Shoulders, Triceps)</h4><ul><li>Bench Press: 4 sets x 6-8 reps</li><li>Incline Dumbbell Press: 3 sets x 8-10 reps</li><li>Overhead Barbell Press: 3 sets x 8-10 reps</li><li>Lateral Raises: 3 sets x 12-15 reps</li><li>Triceps Dips: 3 sets x 10-12 reps</li><li>Cable Triceps Pushdowns: 3 sets x 12-15 reps</li></ul>`;
+        document.getElementById('ppl-pull1').innerHTML = `<h4>Pull Day 1 (Back, Biceps)</h4><ul><li>Deadlift: 4 sets x 6-8 reps</li><li>Pull-Ups (Assisted if needed): 3 sets x 6-8 reps</li><li>Barbell Rows: 3 sets x 8-10 reps</li><li>Face Pulls: 3 sets x 12-15 reps</li><li>Barbell Bicep Curls: 3 sets x 10-12 reps</li><li>Hammer Curls: 3 sets x 12-15 reps</li></ul>`;
+        document.getElementById('ppl-legs1').innerHTML = `<h4>Legs & Core Day 1</h4><ul><li>Squats: 4 sets x 6-8 reps</li><li>Romanian Deadlifts: 3 sets x 8-10 reps</li><li>Leg Press: 3 sets x 10-12 reps</li><li>Leg Curls: 3 sets x 12-15 reps</li><li>Standing Calf Raises: 4 sets x 12-15 reps</li><li>Plank: 3 sets x 30-45 seconds</li><li>Leg Raises: 3 sets x 12-15 reps</li></ul>`;
+        document.getElementById('ppl-push2').innerHTML = `<h4>Push Day 2 (Chest, Shoulders, Triceps)</h4><ul><li>Incline Barbell Press: 4 sets x 6-8 reps</li><li>Dumbbell Shoulder Press: 3 sets x 8-10 reps</li><li>Chest Flyes (Machine or Dumbbell): 3 sets x 10-12 reps</li><li>Front Raises: 3 sets x 12-15 reps</li><li>Overhead Triceps Extension: 3 sets x 12-15 reps</li><li>Cable Lateral Raises: 3 sets x 12-15 reps</li></ul>`;
+        document.getElementById('ppl-pull2').innerHTML = `<h4>Pull Day 2 (Back, Biceps)</h4><ul><li>Lat Pulldowns: 4 sets x 8-10 reps</li><li>T-Bar Rows: 3 sets x 8-10 reps</li><li>Seated Rows: 3 sets x 10-12 reps</li><li>Shrugs: 3 sets x 12-15 reps</li><li>EZ Bar Curls: 3 sets x 10-12 reps</li><li>Concentration Curls: 3 sets x 12-15 reps</li></ul>`;
+        document.getElementById('ppl-legs2').innerHTML = `<h4>Legs & Core Day 2</h4><ul><li>Front Squats: 4 sets x 6-8 reps</li><li>Walking Lunges: 3 sets x 10-12 reps per leg</li><li>Leg Extensions: 3 sets x 12-15 reps</li><li>Seated Leg Curls: 3 sets x 12-15 reps</li><li>Calf Raises (Seated): 4 sets x 12-15 reps</li><li>Russian Twists: 3 sets x 20 reps</li><li>Cable Woodchoppers: 3 sets x 12-15 reps per side</li></ul>`;
+
+        // --- CANVAS DRAWING FUNCTION ---
+        function drawCanvasArt() {
+            const canvas = document.getElementById('workoutCanvas');
+            if (canvas.getContext) {
+                const ctx = canvas.getContext('2d');
+                const canvasWidth = canvas.width; const canvasHeight = canvas.height;
+                const barWidth = 25, barMargin = 8, numBars = 6;
+                const maxBarHeight = canvasHeight - 15;
+                const barColors = ['#2a9d8f', '#e9c46a', '#f4a261', '#e76f51', '#264653', '#8ab17d'];
+                ctx.lineJoin = 'round'; ctx.lineWidth = 2;
+                for (let i = 0; i < numBars; i++) {
+                    const barHeight = (Math.random() * 0.6 + 0.3) * maxBarHeight;
+                    const x = barMargin + i * (barWidth + barMargin);
+                    const y = canvasHeight - barHeight - 2;
+                    ctx.fillStyle = barColors[i % barColors.length];
+                    ctx.beginPath(); ctx.moveTo(x, canvasHeight - 2); ctx.lineTo(x, y);
+                    ctx.lineTo(x + barWidth, y); ctx.lineTo(x + barWidth, canvasHeight - 2);
+                    ctx.closePath(); ctx.fill();
+                }
+                ctx.fillStyle = '#264653'; ctx.font = 'bold 12px Lato';
+                ctx.textAlign = 'center'; ctx.fillText('Daily Activity Visualizer', canvasWidth / 2, 12);
+            }
+        }
+
+        // --- DOM ELEMENT REFERENCES ---
+        const pendingWorkoutsContainer = document.getElementById('pending-workouts');
+        const completedWorkoutsContainer = document.getElementById('completed-workouts');
+        const completedTitle = document.getElementById('completed-title');
+        
+        // --- GLOBAL VARIABLES & CONSTANTS ---
+        const startDate = new Date(2025, 5, 5); // June is month 5 (0-indexed for JS Date)
+        const numDays = 100;
+        const pplCorrectedTemplates = [
+            document.getElementById('ppl-push1').innerHTML, document.getElementById('ppl-pull1').innerHTML,
+            document.getElementById('ppl-legs1').innerHTML, document.getElementById('ppl-push2').innerHTML,
+            document.getElementById('ppl-pull2').innerHTML, document.getElementById('ppl-legs2').innerHTML
+        ];
+        const pplNames = ["Push Day 1", "Pull Day 1", "Legs & Core Day 1", "Push Day 2", "Pull Day 2", "Legs & Core Day 2"];
+        let pplIdx = 3; // PPL cycle starts from PPL4 on Thu, June 5, 2025
+
+        // --- UTILITY FUNCTIONS ---
+        function updateProgressBar() {
+            const totalDays = numDays;
+            const completedCount = completedWorkoutsContainer.children.length;
+            const percentage = totalDays > 0 ? (completedCount / totalDays) * 100 : 0;
+            const progressBarElement = document.getElementById('myProgressBar');
+            const progressTextElement = document.getElementById('myProgressText');
+            if (progressBarElement) progressBarElement.style.width = percentage.toFixed(2) + '%';
+            if (progressTextElement) progressTextElement.textContent = percentage.toFixed(0) + '% Complete';
+        }
+
+        function updateCompletedTitleVisibility() {
+            completedTitle.style.display = completedWorkoutsContainer.children.length > 0 ? 'block' : 'none';
+        }
+
+        // --- LOCAL STORAGE FUNCTIONS ---
+        function saveStateToLocalStorage() {
+            const completedDays = [];
+            for (const item of completedWorkoutsContainer.children) {
+                completedDays.push(item.dataset.dayNumber);
+            }
+            localStorage.setItem('workoutPlan_completedDays_v1', JSON.stringify(completedDays));
+
+            const expandedStates = {};
+            const allToggleCheckboxes = document.querySelectorAll('.day-toggle-checkbox');
+            allToggleCheckboxes.forEach(checkbox => {
+                const dayNumber = checkbox.id.replace('dayToggle', '');
+                expandedStates[dayNumber] = checkbox.checked;
+            });
+            localStorage.setItem('workoutPlan_expandedStates_v1', JSON.stringify(expandedStates));
+        }
+
+        function loadStateFromLocalStorage() {
+            const completedDaysJSON = localStorage.getItem('workoutPlan_completedDays_v1');
+            if (completedDaysJSON) {
+                const completedDays = JSON.parse(completedDaysJSON);
+                completedDays.forEach(dayNumStr => {
+                    const dayNum = parseInt(dayNumStr);
+                    const dayEntry = document.querySelector(`.day-entry[data-day-number="${dayNum}"]`); // Query from whole doc
+                    if (dayEntry) {
+                        completedWorkoutsContainer.appendChild(dayEntry); // appendChild moves it
+                        const button = dayEntry.querySelector('.action-btn');
+                        if (button) button.textContent = 'Mark Pending';
+                    }
+                });
+            }
+
+            const expandedStatesJSON = localStorage.getItem('workoutPlan_expandedStates_v1');
+            if (expandedStatesJSON) {
+                const expandedStates = JSON.parse(expandedStatesJSON);
+                for (const dayNumStr in expandedStates) {
+                    const dayNum = parseInt(dayNumStr);
+                    const checkbox = document.getElementById(`dayToggle${dayNum}`);
+                    if (checkbox) {
+                        checkbox.checked = expandedStates[dayNum];
+                    }
+                }
+            }
+            // Update UI based on loaded state
+            updateCompletedTitleVisibility();
+            updateProgressBar();
+        }
+
+        // --- INITIAL PAGE SETUP ---
+        // Generate initial day entries
+        for (let i = 0; i < numDays; i++) {
+            const currentDate = new Date(startDate);
+            currentDate.setDate(startDate.getDate() + i);
+            const dayNumber = i + 1;
+            const dateString = currentDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+            const weekdayString = currentDate.toLocaleDateString('en-US', { weekday: 'long' });
+            const dayOfWeek = currentDate.getDay(); // 0 = Sunday, 1 = Monday, ...
+            let workoutContent = '', dayEntryClass = "day-entry";
+
+            if (dayOfWeek === 0) { // Sunday
+                workoutContent = '<p><strong>Activity:</strong> Rest Day</p>'; dayEntryClass += " rest-day";
+            } else { // Monday to Saturday
+                let morningWorkoutName = `PPL - ${pplNames[pplIdx]}`, morningWorkoutDetails = pplCorrectedTemplates[pplIdx];
+                let eveningActivity = "---", postPPLActivity = "";
+                if (dayOfWeek === 1 || dayOfWeek === 3 || dayOfWeek === 5) { // Mon, Wed, Fri
+                    eveningActivity = "Boxing at Cult Boxing";
+                } else { // Tue, Thu, Sat (non-boxing PPL days)
+                    postPPLActivity = `<p class="post-workout-cardio"><strong>Post-Workout Cardio:</strong> Morning Treadmill (20-30 minutes)</p>`;
+                }
+                workoutContent = `<p><strong>Morning Gym:</strong> ${morningWorkoutName}</p><div>${morningWorkoutDetails}</div>${postPPLActivity}<p><strong>Evening:</strong> <span class="evening-activity">${eveningActivity}</span></p>`;
+                pplIdx = (pplIdx + 1) % 6; // Cycle through PPL workouts
+            }
+            const dayHtml = `<div class="${dayEntryClass}" data-day-number="${dayNumber}"><input type="checkbox" id="dayToggle${dayNumber}" class="day-toggle-checkbox"><label for="dayToggle${dayNumber}" class="day-label">Day ${dayNumber} - ${dateString} (${weekdayString})</label><div class="workout-details">${workoutContent}</div><div class="day-actions"><button class="action-btn">Mark Completed</button></div></div>`;
+            pendingWorkoutsContainer.innerHTML += dayHtml;
+        }
+        
+        // Load state from Local Storage after initial HTML is generated but before other initializations that depend on state
+        loadStateFromLocalStorage();
+        
+        // Initial UI updates that depend on potentially loaded state
+        drawCanvasArt(); // Draw canvas art
+
+        // --- EVENT LISTENERS ---
+        document.getElementById('calendar-sections').addEventListener('click', function(event) {
+            if (event.target.classList.contains('action-btn')) {
+                const button = event.target;
+                const dayEntry = button.closest('.day-entry');
+                if (!dayEntry) return;
+                const isCurrentlyPending = dayEntry.parentElement.id === 'pending-workouts';
+
+                if (isCurrentlyPending) {
+                    completedWorkoutsContainer.appendChild(dayEntry);
+                    button.textContent = 'Mark Pending';
+                } else {
+                    const dayNumberOfEntry = parseInt(dayEntry.dataset.dayNumber);
+                    let inserted = false;
+                    for (const child of pendingWorkoutsContainer.children) {
+                        const childDayNumber = parseInt(child.dataset.dayNumber);
+                        if (dayNumberOfEntry < childDayNumber) {
+                            pendingWorkoutsContainer.insertBefore(dayEntry, child);
+                            inserted = true; break;
+                        }
+                    }
+                    if (!inserted) pendingWorkoutsContainer.appendChild(dayEntry);
+                    button.textContent = 'Mark Completed';
+                }
+                // Update UI and save state
+                updateCompletedTitleVisibility();
+                updateProgressBar();
+                saveStateToLocalStorage();
+            }
+        });
+
+        document.getElementById('calendar-sections').addEventListener('change', function(event) {
+            if (event.target.classList.contains('day-toggle-checkbox')) {
+                saveStateToLocalStorage(); // Save expand/collapse state
+            }
+        });
+
+        // PWA Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./service-worker.js')
+                    .then(registration => {
+                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                    })
+                    .catch(error => {
+                        console.log('ServiceWorker registration failed: ', error);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>
