@@ -1,6 +1,7 @@
 # 100-Day Workout & Boxing Plan Visualizer
 
-![Workout Plan](https://bharadwajbingi.github.io/gym/favicon.ico)
+![Workout Plan Favicon](https://github.com/bharadwajbingi/gym/raw/main/Barbel-Gym-Dumbbell-fitness-Hand-biceps-Logo-Designs-Inspiration-Vector-by-yahyaanasatokillah.jpg)
+
 
 ## Live Demo
 Try the project live here:  
